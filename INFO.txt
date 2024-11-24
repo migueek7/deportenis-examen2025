@@ -1,0 +1,24 @@
+DokerFile:
+
+//CONSTRUIR UNA IMAGEN DESDE dockerfile
+docker build -t php7 .
+
+
+//CREAR CONTENEDOR A PARTIR DE UNA IMAGEN Y DETECTAR LOS CAMBIOS
+docker run -d -v ${PWD}/src:/var/www/html/ -p 4002:80 --name thompson puntodesarrollo
+
+docker run -d -v ${PWD}/src:/var/www/html/ -p 4002:80 --name thompson --link mysql:mysql puntodesarrollo
+docker run -d -v ${PWD}/src:/var/www/html/ -p 4002:80 --name thompson --link mysql:mysql puntodesarrollo
+
+// CREAR CONTENEDOR INVIVIDUAL CON MYSQL CON VOLUMEN DE DATOS PERSISTENTES
+docker run -d --rm --name mysql -e MYSQL_ROOT_PASSWORD=root -p 3306:3306 -v mysql_data:/var/lib/mysql mysql:5.7
+
+// NO ELIMINA EL CONTENEDOR DESPUES DE CERRAR DOCKER DESKTOP
+docker run -d --name mysql -e MYSQL_ROOT_PASSWORD=root -p 3306:3306 -v mysql_data:/var/lib/mysql mysql:5.7
+
+// LA FORMA CORRECTA DE LEVANTARLO POR MEDIO my_network PARA QUE NO PIERDA CONEXION CON LOS DEMAS PROYECTOS
+docker network create my_network
+docker run -d --name mysql --network my_network --restart always -e MYSQL_ROOT_PASSWORD=root -p 3306:3306 -v mysql_data:/var/lib/mysql mysql:5.7
+
+// POR ULTIMO EJECUTAMOS EL OTRO CONTENEDOR EN LA MISMA RED CREADA PREVIAMENTE PARA CONECTARLOS
+docker run -d -v ${PWD}/src:/var/www/html/ -p 4002:80 --name thompson --network my_network puntodesarrollo
