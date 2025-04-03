@@ -3,8 +3,7 @@ $menusController = new menusControllers();
 $menus = $menusController->getMenu();
 // pre($menus);
 ?>
-<div class="modal fade" id="modalAddMenu" tabindex="-1" aria-labelledby="modalAddMenuLabel"
-    aria-hidden="true">
+<div class="modal fade" id="modalAddMenu" tabindex="-1" aria-labelledby="modalAddMenuLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header">
@@ -12,7 +11,7 @@ $menus = $menusController->getMenu();
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
-                <form id="formAddMenu" action="POST" class="needs-validation" novalidate>
+                <form id="formAddMenu" action="POST" class="needs-validation">
                     <input type="hidden" id="id_menu" name="id_menu" value="0">
 
                     <!-- Select menu padre -->

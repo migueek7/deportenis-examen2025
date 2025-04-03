@@ -46,6 +46,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     action: function (e, dt, node, config) {
                         // abrir modal con los datos del menu
                         myModal.show();
+                        document.querySelector('.btnSave').removeAttribute('disabled');
                         // limpiar formulario
                         document.querySelector("#formAddMenu").reset();
                         document.querySelector("#id_menupadre").value = -1;
@@ -66,72 +67,56 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 
+    // Delegación de eventos para los botones de editar
+    $("#tableMenus").on("click", ".btnEdit", function (e) {
+        console.log('target', e.target);
+        const idMenu = $(this).attr("number");
+        const menus = JSON.parse(sessionStorage.getItem("menus"));
+        const menu = menus.find((element) => element.id_menu == idMenu);
 
-    const borrarMenu = async () => {
-        const btnDeletes = document.querySelectorAll(".btnDelete");
-        console.log('borrarMenu', btnDeletes);
-        btnDeletes.forEach((btn) => {
-            btn.addEventListener("click", async () => {
-                console.log("click", btn.getAttribute("number"));
-                const formData = new FormData();
-                formData.append("id_menu", btn.getAttribute("number"));
-                const options = {
-                    method: "POST",
-                    body: formData,
-                };
-                const url = `${baseUrl}deleteMenu`;
-                try {
-                    const response = await fetch(url, options);
-                    if (!response.ok) throw response;
-                    const data = await response.json();
-                    console.log("data", data);
-                    if (data === "success") {
-                        Swal.fire({
-                            icon: 'success',
-                            title: 'Menu eliminado correctamente',
-                            showConfirmButton: false,
-                            timer: 1500
-                        }).then((result) => {
-                            // recargar la tabla
-                            $("#tableMenus").DataTable().ajax.reload();
-                        });
-                    }
-                } catch (error) {
-                    console.log(error);
-                } finally {
-                    setTimeout(() => {
-                        borrarMenu();
-                        editarMenu();
-                    }, 2000);
-                }
-            });
-        });
-    }
+        if (menu) {
+            myModal.show();
+            const form = document.querySelector("#formAddMenu");
+            form.querySelector("#id_menupadre").value = menu.id_menupadre > 0 ? menu.id_menupadre : -1;
+            form.querySelector("#id_menu").value = menu.id_menu;
+            form.querySelector("#nombre_menu").value = menu.nombre_menu;
+            form.querySelector("#descripcion").value = menu.descripcion;
+            document.querySelector(".btnSave").textContent = "Actualizar";
+        }
+    });
 
-    const editarMenu = async () => {
-        const btnEdits = document.querySelectorAll(".btnEdit");
-        console.log('editarMenu', btnEdits);
-        const form = document.querySelector("#formAddMenu");
-        btnEdits.forEach((btn) => {
-            btn.addEventListener("click", async (event) => {
-                event.preventDefault();
-                console.log("click", btn.getAttribute("number"));
-                // abrir modal con los datos del menu
-                myModal.show();
-                // obtener los datos del menu
-                const menus = JSON.parse(sessionStorage.getItem("menus"));
-                console.log("menus", menus);
-                const menu = menus.find((element) => element.id_menu == btn.getAttribute("number"));
-                console.log("menu", menu);
-                // llenar el formulario
-                form.querySelector("#id_menupadre").value = menu.id_menupadre > 0 ? menu.id_menupadre : -1;
-                form.querySelector("#id_menu").value = menu.id_menu;
-                form.querySelector("#nombre_menu").value = menu.nombre_menu;
-                form.querySelector("#descripcion").value = menu.descripcion;
-                document.querySelector(".btnSave").textContent = "Actualizar";
+    // Delegación de eventos para los botones de borrar
+    $("#tableMenus").on("click", ".btnDelete", async function (e) {
+        console.log('target', e.target);
+        const idMenu = $(this).attr("number");
+        // e.target.setAttribute('disabled');
+        const url = `${baseUrl}deleteMenu`;
+        const formData = new FormData();
+        formData.append("id_menu", idMenu);
+
+        try {
+            const response = await fetch(url, {
+                method: "POST",
+                body: formData,
             });
-        });
-    }
+            if (!response.ok) throw response;
+
+            const data = await response.json();
+            if (data === "success") {
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Menu eliminado correctamente',
+                    showConfirmButton: false,
+                    timer: 1500
+                }).then(() => {
+                    $("#tableMenus").DataTable().ajax.reload();
+                });
+            }
+        } catch (error) {
+            console.error(error);
+            e.target.removeAttribute('disabled');
+        }
+    });
 
     const getMenus = async () => {
         try {
@@ -153,20 +138,19 @@ document.addEventListener("DOMContentLoaded", () => {
             console.log(error);
         } finally {
             console.log('Petición finalizada');
-            setTimeout(() => {
-                borrarMenu();
-                editarMenu();
-            }, 1000);
         }
     }
 
     getMenus();
 
-
     const guardarMenu = async () => {
         const form = document.querySelector("#formAddMenu");
         form.addEventListener("submit", async (event) => {
             event.preventDefault();
+
+            // bloquear boton de guardado
+            document.querySelector('.btnSave').setAttribute('disabled', true);
+
             const formData = new FormData(form);
             console.log("formData", formData);
             let url = "";
@@ -190,21 +174,23 @@ document.addEventListener("DOMContentLoaded", () => {
                         title: 'Menu guardado correctamente',
                         showConfirmButton: false,
                         timer: 1500
-                    }).then((result) => {
+                    }).then(async (result) => {
                         myModal.hide();
-                        $("#tableMenus").DataTable().ajax.reload();
+                        document.querySelector('.btnSave').removeAttribute('disabled');
+                        // Recargar DataTable
+                        $("#tableMenus").DataTable().ajax.reload(null, false);
+                        // Actualizar sessionStorage con los nuevos datos
+                        const menusResponse = await fetch(`${baseUrl}/menus`);
+                        const menusData = await menusResponse.json();
+                        sessionStorage.setItem("menus", JSON.stringify(menusData));
                     });
                 }
 
             } catch (error) {
                 console.log(error);
+                document.querySelector('.btnSave').setAttribute('disabled', false);
             } finally {
                 console.log("Petición finalizada");
-                setTimeout(() => {
-                    borrarMenu();
-                    editarMenu();
-                    getMenus();
-                }, 2000);
             }
         });
     }

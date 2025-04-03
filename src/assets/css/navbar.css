@@ -46,7 +46,7 @@
 }
 
 .menu__link:hover{
-    background-color: #5e7094;
+    background-color: #8aa8e3;
 }
 
 
@@ -62,7 +62,7 @@
     transition:clip-path .3s;
     clip-path: var(--clip);
     position: absolute;
-    right: 0;
+    left: 0;
     bottom: 0;
     width: max-content;
     transform: translateY(100%);
@@ -79,7 +79,7 @@
 }
 
 .menu__link--inside:hover{
-    background-color: #798499;
+    background-color: #8aa8e3;
 }
 
 .menu__hamburguer{
